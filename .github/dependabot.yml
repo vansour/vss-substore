@@ -4,8 +4,3 @@ updates:
     directory: "/"
     schedule:
       interval: "weekly"
-    open-pull-requests-limit: 10
-    ignore:
-      # 忽略 rsa 相关依赖的版本更新
-      - dependency-name: "rsa"
-      - dependency-name: "sqlx-mysql"
