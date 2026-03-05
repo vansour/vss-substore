@@ -1,0 +1,22 @@
+services:
+  vss-substore:
+    image: ghcr.io/vansour/vss-substore:latest
+    container_name: vss-substore
+    hostname: vss-substore
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    environment:
+      - ADMIN_USER=admin
+      - ADMIN_PASSWORD=admin
+      - DATABASE_URL=sqlite:///app/data/substore.db
+    volumes:
+      - ./data:/app/data
+    restart: unless-stopped
+    logging:
+      driver: 'json-file'
+      options:
+        max-size: '10m'
+        max-file: '3'
