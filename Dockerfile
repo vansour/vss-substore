@@ -1,15 +1,18 @@
-FROM ghcr.io/vansour/rust:trixie AS builder
+FROM rust:trixie AS builder
 WORKDIR /app
 
-RUN rustup target add wasm32-unknown-unknown
-RUN cargo install dioxus-cli --version 0.7.3
+RUN rustup target add wasm32-unknown-unknown && \
+    curl -fsSL "https://github.com/DioxusLabs/dioxus/releases/download/v0.7.3/dx-x86_64-unknown-linux-gnu.tar.gz" \
+      | tar -xz -C /usr/local/cargo/bin dx && \
+    chmod +x /usr/local/cargo/bin/dx && \
+    dx --version
 
 COPY . .
 
 RUN dx build --platform web --package submora-web --release
 RUN cargo build --release -p submora && strip target/release/submora
 
-FROM ghcr.io/vansour/debian:trixie-slim
+FROM debian:trixie-slim
 
 RUN apt update && \
     DEBIAN_FRONTEND=noninteractive apt install -y --no-install-recommends ca-certificates curl tzdata sqlite3 && \
