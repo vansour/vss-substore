@@ -34,18 +34,12 @@
 - `main.rs` 为 Axum 服务接入了优雅退出。
 - 收到 `SIGINT` / `SIGTERM` 时会停止服务并中止 session 清理任务。
 
-### 测试
-
-- 原有集成测试继续覆盖登录、用户管理、排序和公共聚合。
-- 新增“同一数据库上的 session 跨 app rebuild 仍有效”测试，直接验证 SQLite 持久会话能力。
-
 ## 关键文件
 
 - `backend/src/session.rs`
 - `backend/src/config.rs`
 - `backend/src/main.rs`
 - `backend/src/app.rs`
-- `backend/tests/http_flow.rs`
 - `compose.yml`
 - `README.md`
 
@@ -55,7 +49,6 @@
 
 ```bash
 cargo check --workspace
-cargo test -p submora-core -p submora
 ```
 
 ## 当前结果

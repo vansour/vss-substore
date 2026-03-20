@@ -28,15 +28,6 @@
 - 公共输出现在只包含真正抓取成功的源内容。
 - 失败、阻断、跳转等细节继续写入 `fetch_diagnostics`，留给管理端查看。
 
-### 5. 测试覆盖
-
-阶段九新增测试覆盖：
-
-- 旧 `config_version` 的 snapshot 写入会被拒绝。
-- 失败抓取不会再生成 merged output 片段。
-- 公共路由在失败抓取场景下返回空文本，但诊断仍记录为 `blocked`。
-- 管理端缓存状态会忽略旧版本 snapshot。
-
 ## 关键文件
 
 - `backend/migrations/0003_config_versions.sql`
@@ -44,7 +35,6 @@
 - `backend/src/routes/public.rs`
 - `backend/src/routes/users.rs`
 - `backend/src/subscriptions.rs`
-- `backend/tests/http_flow.rs`
 - `packages/core/src/lib.rs`
 
 ## 验证
@@ -52,7 +42,6 @@
 本地已通过：
 
 ```bash
-cargo test -p submora
 ```
 
 阶段九完成后，公共聚合路由的 cache 与诊断职责进一步分离：

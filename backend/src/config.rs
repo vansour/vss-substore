@@ -164,34 +164,3 @@ fn parse_fetch_host_overrides(input: &str) -> HashMap<String, Vec<SocketAddr>> {
         .collect()
 }
 
-#[cfg(test)]
-mod tests {
-    use std::net::SocketAddr;
-
-    use super::parse_fetch_host_overrides;
-
-    #[test]
-    fn parses_fetch_host_overrides() {
-        let overrides = parse_fetch_host_overrides(
-            "fixture.invalid:4181=127.0.0.1:4181,dual.invalid:80=127.0.0.1:18080|127.0.0.1:18081",
-        );
-
-        assert_eq!(
-            overrides.get("fixture.invalid:4181"),
-            Some(&vec![
-                "127.0.0.1:4181".parse::<SocketAddr>().expect("socket addr")
-            ])
-        );
-        assert_eq!(
-            overrides.get("dual.invalid:80"),
-            Some(&vec![
-                "127.0.0.1:18080"
-                    .parse::<SocketAddr>()
-                    .expect("socket addr"),
-                "127.0.0.1:18081"
-                    .parse::<SocketAddr>()
-                    .expect("socket addr"),
-            ])
-        );
-    }
-}

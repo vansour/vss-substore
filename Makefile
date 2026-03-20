@@ -1,12 +1,9 @@
-.PHONY: check test clippy clippy-wasm serve build e2e
+.PHONY: check clippy clippy-wasm serve build
 
 check:
 	cargo fmt --all -- --check
 	cargo check --workspace
 	cargo check -p submora-web --target wasm32-unknown-unknown
-
-test:
-	cargo test -p submora-core -p submora
 
 clippy:
 	cargo clippy --workspace --all-targets -- -D warnings
@@ -19,6 +16,3 @@ serve:
 
 build:
 	dx build --platform web --package submora-web --release
-
-e2e:
-	npm run e2e

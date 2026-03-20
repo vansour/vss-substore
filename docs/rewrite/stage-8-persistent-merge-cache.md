@@ -70,16 +70,6 @@
 - 手动清理缓存
 - 继续打开公共路由查看真实输出
 
-### 6. 测试覆盖
-
-阶段八新增和扩展的集成测试覆盖：
-
-- 首次访问公共路由返回 `miss`
-- 同一用户再次访问命中 `hit`
-- 管理端缓存刷新接口可以主动建立 snapshot
-- 手动清理缓存后状态回到 `empty`
-- 更新链接后原有 snapshot 会被失效
-
 ## 验证
 
 本地已通过：
@@ -88,5 +78,4 @@
 cargo fmt --all
 cargo check --workspace
 cargo check -p submora-web --target wasm32-unknown-unknown
-cargo test -p submora-core -p submora
 ```

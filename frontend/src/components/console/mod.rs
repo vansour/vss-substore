@@ -1,10 +1,13 @@
+mod actions;
 mod auth;
 mod cache;
 mod diagnostics;
 mod editor;
+mod overview;
 mod services;
 mod state;
 mod users;
+mod view;
 
 use dioxus::prelude::*;
 
@@ -13,269 +16,225 @@ use auth::{AccountPanel, ControlPlanePanel, LoginPanel};
 use cache::CachePanel;
 use diagnostics::DiagnosticsPanel;
 use editor::EditorPanel;
+use overview::UserOverview;
 use state::{
-    CacheDisplay, current_user_snapshot, sync_links_text, use_console_resources,
-    use_feedback_signals, use_refresh_state, users_snapshot,
-};
-use submora_shared::{
-    auth::CurrentUserResponse,
-    users::{UserCacheStatusResponse, UserDiagnosticsResponse},
+    has_unsaved_links, optional_resource_snapshot, resource_snapshot, sync_links_text,
+    use_console_resources, use_feedback_signals, use_link_draft_state, use_pending_state,
+    use_refresh_state,
 };
 use users::UsersPanel;
+use view::{ConsolePageMeta, UserSummary};
 
 #[component]
-pub fn AdminConsole(mode: &'static str, initial_user: Option<String>) -> Element {
+pub fn AdminConsole(mode: &'static str, route_user: Option<String>) -> Element {
     let login_username = use_signal(String::new);
     let login_password = use_signal(String::new);
     let create_username = use_signal(String::new);
-    let selected_username = use_signal(|| initial_user.clone());
     let links_text = use_signal(String::new);
     let account_username = use_signal(String::new);
     let account_current_password = use_signal(String::new);
     let account_new_password = use_signal(String::new);
 
     let feedback = use_feedback_signals();
+    let link_drafts = use_link_draft_state();
+    let pending = use_pending_state();
     let refresh = use_refresh_state();
-    let resources = use_console_resources(selected_username, refresh);
-    sync_links_text(links_text, resources.links_resource);
+    let resources = use_console_resources(route_user.clone(), refresh);
+    sync_links_text(
+        route_user.clone(),
+        links_text,
+        resources.links_resource,
+        link_drafts,
+    );
 
-    let current_user = current_user_snapshot(&resources.auth_resource);
-    let users = users_snapshot(&resources.users_resource);
-    let cache_status = cache_status_snapshot(&resources.cache_resource);
-    let cache_error = cache_error_snapshot(&resources.cache_resource);
-    let diagnostics = diagnostics_snapshot(&resources.diagnostics_resource);
-    let diagnostics_error = diagnostics_error_snapshot(&resources.diagnostics_resource);
+    let current_user = optional_resource_snapshot(&resources.auth_resource);
+    let users = resource_snapshot(&resources.users_resource);
+    let cache_status = optional_resource_snapshot(&resources.cache_resource);
+    let diagnostics = optional_resource_snapshot(&resources.diagnostics_resource);
 
-    let user_list = users.clone().unwrap_or_default();
-    let selected = selected_username();
-    let current_username = current_user
-        .clone()
-        .map(|user| user.username)
-        .unwrap_or_default();
-    let user_count = user_list.len();
-    let selected_display = selected
-        .clone()
-        .unwrap_or_else(|| "No active selection".to_string());
-    let selected_route = selected
-        .clone()
-        .map(|username| format!("/{username}"))
-        .unwrap_or_else(|| "/{username}".to_string());
-    let selected_link_count = services::count_links(&links_text());
-    let diagnostics_list = diagnostics
-        .clone()
-        .map(|payload| payload.diagnostics)
-        .unwrap_or_default();
-    let diagnostics_total = diagnostics_list.len();
-    let diagnostics_success_count = diagnostics_list
-        .iter()
-        .filter(|diagnostic| diagnostic.status == "success")
-        .count();
-    let diagnostics_blocked_count = diagnostics_list
-        .iter()
-        .filter(|diagnostic| diagnostic.status == "blocked")
-        .count();
-    let diagnostics_pending_count = diagnostics_list
-        .iter()
-        .filter(|diagnostic| diagnostic.status == "pending")
-        .count();
-    let cache_display = CacheDisplay::from_status(cache_status.as_ref());
-    let cache_state = cache_display.state.clone();
-    let cache_line_count = cache_display.line_count;
-    let is_authenticated = current_user.is_some();
-
-    let title = match mode {
-        "login" => "Session Login",
-        "account" => "Administrator Account",
-        "user" => "User Detail",
-        _ => "Rewrite Dashboard",
-    };
-    let summary = match mode {
-        "login" => "Authenticate with cookie sessions and a per-session CSRF token.",
-        "account" => {
-            "Rotate the administrator username or password through the guarded account endpoint."
-        }
-        "user" => {
-            "Inspect one user, adjust ordered sources, and review cache plus per-link diagnostics."
-        }
-        _ => {
-            "Phase 11 adds default security headers and a dedicated public-route rate limiter on top of the earlier proxy and SSRF hardening."
-        }
-    };
-    let mode_label = match mode {
-        "login" => "Login",
-        "account" => "Account",
-        "user" => "User Route",
-        _ => "Dashboard",
-    };
-    let shell_title = if is_authenticated {
-        title
-    } else {
-        "Administrator Login"
-    };
-    let shell_summary = if is_authenticated {
-        summary
-    } else {
-        "Sign in to manage users, sources, cache, and diagnostics."
-    };
+    let page = ConsolePageMeta::build(mode, route_user, current_user.value.clone());
+    let user_count = users.value.as_ref().map(Vec::len).unwrap_or_default();
+    let current_links_text = links_text();
+    let has_unsaved_changes = has_unsaved_links(
+        page.selected_username.as_deref(),
+        &current_links_text,
+        link_drafts,
+    );
+    let user_summary = UserSummary::build(
+        page.selected_username.clone(),
+        user_count,
+        &current_links_text,
+        cache_status.value.as_ref(),
+        diagnostics.value.as_ref(),
+    );
+    let has_selected_user = user_summary.is_some();
 
     rsx! {
         AppShell {
-            title: shell_title.to_string(),
-            summary: shell_summary.to_string(),
-            compact: !is_authenticated,
+            title: page.shell_title.clone(),
+            summary: page.shell_summary.clone(),
+            compact: !page.is_authenticated,
+            active_mode: if page.is_authenticated { Some(page.active_mode) } else { None },
+            selected_user: page.selected_username.clone(),
             if let Some(message) = (feedback.status_message)() {
-                article { class: "notice notice--success",
+                article {
+                    class: "notice notice--success",
+                    role: "status",
+                    "aria-live": "polite",
+                    "aria-atomic": "true",
                     div {
-                        strong { "Saved" }
+                        strong { "操作完成" }
                         p { "{message}" }
                     }
                 }
             }
             if let Some(message) = (feedback.error_message)() {
-                article { class: "notice notice--error",
+                article {
+                    class: "notice notice--error",
+                    role: "alert",
+                    "aria-live": "assertive",
+                    "aria-atomic": "true",
                     div {
-                        strong { "Request Error" }
+                        strong { "操作失败" }
                         p { "{message}" }
                     }
                 }
             }
-            if let Some(CurrentUserResponse { username }) = current_user.clone() {
-                ControlPlanePanel {
-                    username,
-                    selected_username,
-                    links_text,
-                    feedback,
-                    refresh,
-                }
-                div { class: "stats-grid",
-                    article { class: "stat-card",
-                        span { class: "stat-kicker", "Mode" }
-                        strong { class: "stat-value", "{mode_label}" }
-                        p { class: "stat-note", "The shell adapts to login, account, detail, and dashboard routes." }
+            if let Some(username) = current_user.value.clone().map(|user| user.username) {
+                if page.active_mode == "account" {
+                    div { class: "account-shell",
+                        ControlPlanePanel {
+                            username,
+                            selected_username: page.selected_username.clone(),
+                            show_selection: false,
+                            links_text,
+                            pending,
+                            feedback,
+                            refresh,
+                        }
+                        AccountPanel {
+                            account_username,
+                            account_current_password,
+                            account_new_password,
+                            current_username: page.current_username.clone(),
+                            pending,
+                            feedback,
+                            refresh,
+                        }
                     }
-                    article { class: "stat-card",
-                        span { class: "stat-kicker", "Users" }
-                        strong { class: "stat-value", "{user_count}" }
-                        p { class: "stat-note", "Sorted server-side and used for public aggregation order." }
-                    }
-                    article { class: "stat-card",
-                        span { class: "stat-kicker", "Selection" }
-                        strong { class: "stat-value", "{selected_display}" }
-                        p { class: "stat-note", "Public route " code { "{selected_route}" } }
-                    }
-                    article { class: "stat-card",
-                        span { class: "stat-kicker", "Sources" }
-                        strong { class: "stat-value", "{selected_link_count}" }
-                        p { class: "stat-note", "Duplicates collapse in order before persistence." }
-                    }
-                    article { class: "stat-card",
-                        span { class: "stat-kicker", "Diagnostics" }
-                        strong { class: "stat-value", "{diagnostics_success_count}/{diagnostics_total}" }
-                        p { class: "stat-note", "Successful fetches tracked against the current ordered source list." }
-                    }
-                    article { class: "stat-card",
-                        span { class: "stat-kicker", "Cache" }
-                        strong { class: "stat-value", "{cache_state}" }
-                        p { class: "stat-note", "{cache_line_count} merged lines currently stored for the selected user." }
+                } else {
+                    div { class: "console-layout",
+                        if has_selected_user {
+                            aside { class: "console-sidebar",
+                                ControlPlanePanel {
+                                    username,
+                                    selected_username: page.selected_username.clone(),
+                                    show_selection: true,
+                                    links_text,
+                                    pending,
+                                    feedback,
+                                    refresh,
+                                }
+                                UsersPanel {
+                                    create_username,
+                                    users: users.value.clone(),
+                                    selected_username: page.selected_username.clone(),
+                                    pending,
+                                    feedback,
+                                    refresh,
+                                }
+                            }
+                            section { class: "console-main",
+                                if let Some(user_summary) = user_summary.clone() {
+                                    UserOverview { summary: user_summary.clone() }
+                                    div { class: "workspace-canvas",
+                                        div { class: "workspace-primary",
+                                            EditorPanel {
+                                                username: user_summary.selected_username.clone(),
+                                                selected_route: user_summary.selected_route.clone(),
+                                                links_text,
+                                                selected_link_count: user_summary.selected_link_count,
+                                                drafts: link_drafts,
+                                                has_unsaved_changes,
+                                                pending,
+                                                feedback,
+                                                refresh,
+                                            }
+                                        }
+                                        aside { class: "console-support",
+                                            CachePanel {
+                                                username: user_summary.selected_username.clone(),
+                                                cache: user_summary.cache_display.clone(),
+                                                cache_error: cache_status.error.clone(),
+                                                pending,
+                                                feedback,
+                                                refresh,
+                                            }
+                                            DiagnosticsPanel {
+                                                diagnostics: diagnostics.value.clone(),
+                                                diagnostics_error: diagnostics.error.clone(),
+                                                success_count: user_summary.success_count,
+                                                error_count: user_summary.error_count,
+                                                blocked_count: user_summary.blocked_count,
+                                                pending_count: user_summary.pending_count,
+                                            }
+                                        }
+                                    }
+                                }
+                            }
+                        } else {
+                            aside { class: "console-sidebar",
+                                ControlPlanePanel {
+                                    username,
+                                    selected_username: page.selected_username.clone(),
+                                    show_selection: true,
+                                    links_text,
+                                    pending,
+                                    feedback,
+                                    refresh,
+                                }
+                                UsersPanel {
+                                    create_username,
+                                    users: users.value.clone(),
+                                    selected_username: page.selected_username.clone(),
+                                    pending,
+                                    feedback,
+                                    refresh,
+                                }
+                            }
+                            section { class: "console-main",
+                                article { class: "panel panel--editor panel--empty",
+                                    div { class: "section-head",
+                                        div {
+                                            p { class: "eyebrow", "订阅组" }
+                                            h2 { "请先选择一个订阅组" }
+                                            p { class: "muted", "从左侧列表选择已有订阅组，或新建一个订阅组后开始配置。" }
+                                        }
+                                        span { class: "tag", "共 {user_count} 个订阅组" }
+                                    }
+                                    div { class: "empty-state empty-user__copy",
+                                        strong { "订阅组待选择" }
+                                        p { "选中订阅组后，这里会展示对应的源链接、缓存状态和抓取诊断信息。" }
+                                    }
+                                    if users.value.is_some() {
+                                        p { class: "muted empty-user__note",
+                                            "左侧订阅组列表是唯一入口：可直接进入已有订阅组，或在新建订阅组表单中创建后进入。"
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             } else {
                 LoginPanel {
                     login_username,
                     login_password,
-                    feedback,
-                    refresh,
-                }
-            }
-            if current_user.is_some() {
-                div { class: "workspace-grid",
-                    UsersPanel {
-                        create_username,
-                        users,
-                        selected_username,
-                        feedback,
-                        refresh,
-                    }
-                    if let Some(selected_username_value) = selected.clone() {
-                        div { class: "panel-stack",
-                            EditorPanel {
-                                username: selected_username_value.clone(),
-                                selected_route: selected_route.clone(),
-                                links_text,
-                                selected_link_count,
-                                selected_username,
-                                feedback,
-                                refresh,
-                            }
-                            CachePanel {
-                                username: selected_username_value.clone(),
-                                cache: cache_display.clone(),
-                                cache_error,
-                                feedback,
-                                refresh,
-                            }
-                            DiagnosticsPanel {
-                                diagnostics,
-                                diagnostics_error,
-                                success_count: diagnostics_success_count,
-                                blocked_count: diagnostics_blocked_count,
-                                pending_count: diagnostics_pending_count,
-                            }
-                        }
-                    } else {
-                        article { class: "panel panel--editor",
-                            div { class: "empty-state",
-                                strong { "Choose a user first" }
-                                p { "Select a row from the user list to edit sources, then publish the merged route from the same runtime." }
-                            }
-                        }
-                    }
-                }
-                AccountPanel {
-                    account_username,
-                    account_current_password,
-                    account_new_password,
-                    current_username,
+                    pending,
                     feedback,
                     refresh,
                 }
             }
         }
-    }
-}
-
-fn cache_status_snapshot(
-    resource: &Resource<Result<Option<UserCacheStatusResponse>, String>>,
-) -> Option<UserCacheStatusResponse> {
-    match &*resource.read_unchecked() {
-        Some(Ok(Some(status))) => Some(status.clone()),
-        _ => None,
-    }
-}
-
-fn cache_error_snapshot(
-    resource: &Resource<Result<Option<UserCacheStatusResponse>, String>>,
-) -> Option<String> {
-    match &*resource.read_unchecked() {
-        Some(Err(error)) => Some(error.clone()),
-        _ => None,
-    }
-}
-
-fn diagnostics_snapshot(
-    resource: &Resource<Result<Option<UserDiagnosticsResponse>, String>>,
-) -> Option<UserDiagnosticsResponse> {
-    match &*resource.read_unchecked() {
-        Some(Ok(Some(diagnostics))) => Some(diagnostics.clone()),
-        _ => None,
-    }
-}
-
-fn diagnostics_error_snapshot(
-    resource: &Resource<Result<Option<UserDiagnosticsResponse>, String>>,
-) -> Option<String> {
-    match &*resource.read_unchecked() {
-        Some(Err(error)) => Some(error.clone()),
-        _ => None,
     }
 }

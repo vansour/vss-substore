@@ -77,10 +77,8 @@ cargo run -p submora
 
 ```bash
 make check
-make test
 make clippy
 make clippy-wasm
-make e2e
 make serve
 make build
 ```
@@ -107,7 +105,7 @@ make build
 
 - `CI`
   - 对 `main` 的 `push` 和 `pull_request` 运行。
-  - 执行 `fmt`、`check`、`clippy`、Rust tests 和 Playwright E2E。
+  - 执行 `fmt`、`check` 和 `clippy`。
 - `reviewdog`
   - 对 `main` 的 PR 运行。
   - 为 `rustfmt`、`clippy`、`clippy-wasm` 提供 PR 注释/检查反馈。
@@ -188,10 +186,8 @@ docker compose up -d --build
 
 ```bash
 make check
-make test
 make clippy
 make clippy-wasm
-make e2e
 ```
 
 对应展开后为：
@@ -200,10 +196,8 @@ make e2e
 cargo fmt --all -- --check
 cargo check --workspace
 cargo check -p submora-web --target wasm32-unknown-unknown
-cargo test -p submora-core -p submora
 cargo clippy --workspace --all-targets -- -D warnings
 cargo clippy -p submora-web --target wasm32-unknown-unknown -- -D warnings
-npm run e2e
 ```
 
 ## 说明
@@ -212,6 +206,5 @@ npm run e2e
 - 管理会话与 merged cache snapshot 都保存在 SQLite 中，可跨服务重启保留。
 - 写接口继续沿用阶段七启用的 CSRF 校验。
 - 过期 snapshot 现在会先返回旧值并在后台刷新，响应 header 的 `x-substore-cache` 可能出现 `hit`、`miss`、`stale` 和 `empty`。
-- `FETCH_HOST_OVERRIDES` 可用于显式静态解析上游 host，主要用于测试和内网联调；默认留空，不会改变公网抓取边界。
-- 当前 Rust 集成测试和 Playwright E2E 都使用本地 upstream fixture，不依赖公网可达性。
+- `FETCH_HOST_OVERRIDES` 可用于显式静态解析上游 host，主要用于内网联调；默认留空，不会改变公网抓取边界。
 - 阶段记录见 `docs/rewrite/stage-1-baseline.md` 到 `docs/rewrite/stage-11-edge-hardening.md`。

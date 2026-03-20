@@ -40,13 +40,6 @@
 - `60`
 - `60`
 
-## 测试覆盖
-
-阶段十一新增测试覆盖：
-
-- 默认安全响应头存在。
-- 公共入口超过阈值后返回 `429 too_many_requests`。
-
 ## 关键文件
 
 - `backend/src/app.rs`
@@ -55,7 +48,6 @@
 - `backend/src/routes/public.rs`
 - `backend/src/security.rs`
 - `backend/src/state.rs`
-- `backend/tests/http_flow.rs`
 - `packages/core/src/lib.rs`
 - `README.md`
 
@@ -64,7 +56,6 @@
 本地应通过：
 
 ```bash
-cargo test -p submora
 cargo check --workspace
 ```
 

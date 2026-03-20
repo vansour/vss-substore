@@ -53,11 +53,10 @@ cargo run -p submora
 
 ```bash
 cargo check --workspace
-cargo test -p submora-core -p submora
 ```
 
 ## 当前结果
 
 - 新架构已经成为仓库唯一主线。
-- 阶段四的安全加固、UI 收口和测试保留不变。
+- 阶段四的安全加固和 UI 收口保留不变。
 - 阶段五主要完成的是包名、目录结构和仓库入口的最终切换。

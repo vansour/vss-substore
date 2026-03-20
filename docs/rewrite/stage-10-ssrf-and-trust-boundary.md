@@ -27,14 +27,6 @@
 - 新目标会重新解析、重新判定 forbidden IP，并带着新的已验证地址继续请求。
 - 这样可以避免首跳安全、后跳 rebinding 或跳转到内网地址的情况。
 
-### 4. 测试覆盖
-
-阶段十新增测试覆盖：
-
-- 未信任代理头时，伪造 `x-forwarded-for` 无法绕过登录锁定。
-- 显式信任代理头后，限流会按转发 IP 分桶。
-- hostname 请求会实际命中手工注入的已验证地址，证明 DNS override 生效。
-
 ## 关键文件
 
 - `backend/src/config.rs`
@@ -43,7 +35,6 @@
 - `backend/src/main.rs`
 - `backend/src/subscriptions.rs`
 - `backend/src/cache.rs`
-- `backend/tests/http_flow.rs`
 - `packages/core/src/lib.rs`
 - `README.md`
 
@@ -52,7 +43,6 @@
 本地应通过：
 
 ```bash
-cargo test -p submora
 cargo check --workspace
 ```
 

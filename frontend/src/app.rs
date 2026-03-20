@@ -23,6 +23,8 @@ pub fn App() -> Element {
         "/assets/app.css",
         AssetOptions::css().with_static_head(true)
     );
+    let _font_assets = asset!("/assets/fonts", AssetOptions::folder());
+    let _style_assets = asset!("/assets/styles", AssetOptions::folder());
 
     rsx! {
         Router::<Route> {}
@@ -31,22 +33,22 @@ pub fn App() -> Element {
 
 #[component]
 fn Dashboard() -> Element {
-    rsx! { AdminConsole { mode: "dashboard", initial_user: None } }
+    rsx! { AdminConsole { mode: "dashboard", route_user: None } }
 }
 
 #[component]
 fn Login() -> Element {
-    rsx! { AdminConsole { mode: "login", initial_user: None } }
+    rsx! { AdminConsole { mode: "login", route_user: None } }
 }
 
 #[component]
 fn UserDetail(username: String) -> Element {
-    rsx! { AdminConsole { mode: "user", initial_user: Some(username) } }
+    rsx! { AdminConsole { mode: "user", route_user: Some(username) } }
 }
 
 #[component]
 fn Account() -> Element {
-    rsx! { AdminConsole { mode: "account", initial_user: None } }
+    rsx! { AdminConsole { mode: "account", route_user: None } }
 }
 
 #[component]
@@ -55,21 +57,23 @@ fn NotFound(segments: Vec<String>) -> Element {
 
     rsx! {
         AppShell {
-            title: "Not Found".to_string(),
-            summary: format!("No Dioxus route is registered for {route}."),
+            title: "页面未找到".to_string(),
+            summary: format!("没有为 {route} 注册 Dioxus 路由。"),
             compact: false,
+            active_mode: None,
+            selected_user: None,
             article { class: "panel",
                 div { class: "section-head",
                     div {
-                        h2 { "Route handled elsewhere" }
-                        p { class: "muted", "The admin console owns only the explicit Dioxus pages." }
+                        h2 { "该路由由其他层处理" }
+                        p { class: "muted", "管理控制台只接管显式声明的 Dioxus 页面。" }
                     }
                     span { class: "tag", "{route}" }
                 }
                 p { class: "panel-copy",
-                    "The public subscription route "
+                    "公共订阅路由 "
                     code { {"/{username}".to_string()} }
-                    " remains owned by Axum so merged text responses bypass the Dioxus router."
+                    " 仍由 Axum 处理，因此聚合后的文本响应不会经过 Dioxus 路由。"
                 }
             }
         }

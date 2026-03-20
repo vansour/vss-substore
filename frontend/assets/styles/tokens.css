@@ -1,0 +1,81 @@
+@font-face {
+  font-family: "Submora MiSans";
+  src: url("../fonts/submora-misans-ui-vf.woff2") format("woff2");
+  font-style: normal;
+  font-weight: 150 700;
+  font-display: swap;
+}
+
+:root {
+  color-scheme: light;
+  --font-ui:
+    "Submora MiSans",
+    "MiSans",
+    "Noto Sans SC",
+    "Source Han Sans SC",
+    "PingFang SC",
+    "Hiragino Sans GB",
+    "Microsoft YaHei",
+    sans-serif;
+  --font-display: var(--font-ui);
+  --font-mono: "IBM Plex Mono", "SFMono-Regular", monospace;
+  font-family: var(--font-ui);
+  font-synthesis: none;
+  --bg-cream: #efe1d0;
+  --bg-mint: #e2eee8;
+  --bg-blue: #e7eef9;
+  --surface: rgba(255, 250, 244, 0.9);
+  --surface-strong: rgba(255, 255, 255, 0.98);
+  --surface-accent: rgba(17, 86, 104, 0.1);
+  --surface-elevated: rgba(255, 255, 255, 0.94);
+  --surface-card: rgba(255, 255, 255, 0.84);
+  --surface-card-strong: rgba(255, 255, 255, 0.92);
+  --surface-card-soft: rgba(255, 255, 255, 0.72);
+  --surface-control: rgba(255, 255, 255, 0.84);
+  --surface-control-hover: rgba(255, 255, 255, 0.96);
+  --surface-control-strong: rgba(255, 255, 255, 0.98);
+  --surface-field: rgba(255, 255, 255, 0.97);
+  --surface-field-disabled: rgba(255, 255, 255, 0.76);
+  --surface-muted: rgba(25, 36, 56, 0.05);
+  --surface-empty: rgba(255, 255, 255, 0.56);
+  --line: rgba(25, 36, 56, 0.16);
+  --line-soft: rgba(25, 36, 56, 0.11);
+  --line-strong: rgba(25, 36, 56, 0.24);
+  --ink: #132033;
+  --muted: #4b5c71;
+  --accent: #c85f31;
+  --accent-strong: #ab4720;
+  --accent-soft: rgba(200, 95, 49, 0.14);
+  --accent-line: rgba(200, 95, 49, 0.2);
+  --cool: #115668;
+  --cool-soft: rgba(17, 86, 104, 0.14);
+  --cool-line: rgba(17, 86, 104, 0.2);
+  --success: #14795c;
+  --success-soft: rgba(20, 121, 92, 0.12);
+  --success-line: rgba(20, 121, 92, 0.2);
+  --danger: #b44444;
+  --danger-soft: rgba(180, 68, 68, 0.12);
+  --danger-line: rgba(180, 68, 68, 0.2);
+  --shadow: 0 28px 78px rgba(23, 32, 51, 0.14);
+  --shadow-soft: 0 18px 46px rgba(23, 32, 51, 0.1);
+  --shadow-interactive: 0 18px 34px rgba(23, 32, 51, 0.2);
+  --shadow-primary: 0 16px 30px rgba(200, 95, 49, 0.24);
+  --shadow-success: 0 18px 40px rgba(20, 121, 92, 0.08);
+  --shadow-danger: 0 18px 40px rgba(180, 68, 68, 0.08);
+  --radius-panel: 28px;
+  --radius-large: 24px;
+  --radius-card: 22px;
+  --radius-control: 18px;
+  --radius-button: 16px;
+  --radius-compact: 14px;
+  --radius-pill: 999px;
+  --panel-padding: 24px;
+  --card-padding: 16px 18px;
+  --focus-ring: 0 0 0 4px rgba(200, 95, 49, 0.16);
+  --focus-ring-danger: 0 0 0 4px rgba(180, 68, 68, 0.16);
+  --transition-interactive: transform 160ms ease, box-shadow 160ms ease,
+    border-color 160ms ease, background 160ms ease, color 160ms ease,
+    opacity 160ms ease;
+  --transition-field: border-color 160ms ease, box-shadow 160ms ease,
+    transform 160ms ease, background 160ms ease;
+}

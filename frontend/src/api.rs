@@ -15,6 +15,8 @@ mod imp {
     };
     use web_sys::RequestCredentials;
 
+    use crate::messages::translate_backend_message;
+
     const CSRF_HEADER: &str = "x-csrf-token";
 
     std::thread_local! {
@@ -30,9 +32,9 @@ mod imp {
     }
 
     async fn parse_error(response: Response) -> String {
-        let fallback = format!("request failed with status {}", response.status());
+        let fallback = format!("请求失败，状态码 {}", response.status());
         match response.json::<ApiErrorBody>().await {
-            Ok(body) => body.message,
+            Ok(body) => translate_backend_message(&body.message),
             Err(_) => fallback,
         }
     }
@@ -63,7 +65,7 @@ mod imp {
             "POST" => Ok(Request::post(url)),
             "PUT" => Ok(Request::put(url)),
             "DELETE" => Ok(Request::delete(url)),
-            _ => Err(format!("unsupported method: {method}")),
+            _ => Err(format!("不支持的请求方法：{method}")),
         }
     }
 
@@ -241,7 +243,7 @@ mod imp {
     };
 
     fn unavailable() -> String {
-        "web api client is only available on wasm32".to_string()
+        "Web API 客户端仅在 wasm32 目标下可用".to_string()
     }
 
     pub async fn get_me() -> Result<Option<CurrentUserResponse>, String> {

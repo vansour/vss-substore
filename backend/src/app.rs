@@ -91,7 +91,7 @@ async fn index(axum::extract::State(state): axum::extract::State<Arc<AppState>>)
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{name} phase {phase}</title>
+    <title>{name} service</title>
     <style>
       body {{ font-family: ui-sans-serif, system-ui, sans-serif; margin: 0; background: #f5f7fb; color: #162033; }}
       main {{ max-width: 860px; margin: 64px auto; padding: 0 24px; }}
@@ -104,8 +104,8 @@ async fn index(axum::extract::State(state): axum::extract::State<Arc<AppState>>)
   <body>
     <main>
       <section>
-        <h1>{name} phase {phase} backend is running</h1>
-        <p>The server now provides the phase 11 rewrite runtime, serves the built Dioxus console by default, adds default security response headers, rate-limits public feed requests separately from login, and keeps the earlier CSRF, proxy trust, and SSRF protections in place.</p>
+        <h1>{name} service is running</h1>
+        <p>The server serves the built Dioxus console by default, adds security response headers, rate-limits public feed requests separately from login, and keeps the existing CSRF, proxy trust, and SSRF protections in place.</p>
         <ul>
           <li><code>GET /healthz</code></li>
           <li><code>GET /api/meta/app</code></li>
@@ -122,7 +122,6 @@ async fn index(axum::extract::State(state): axum::extract::State<Arc<AppState>>)
   </body>
 </html>"#,
         name = submora_core::APP_NAME,
-        phase = submora_core::CURRENT_PHASE,
         dist = state.config.web_dist_dir.display(),
     ))
 }

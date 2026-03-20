@@ -75,13 +75,12 @@ async fn main() -> std::io::Result<()> {
 
     info!(
         name = submora_core::APP_NAME,
-        phase = submora_core::CURRENT_PHASE,
         frontend = "dioxus-0.7.3",
         backend = "axum-0.8.8",
         session_store = "sqlite",
         address = %bind_addr,
         database_url = %config.database_url,
-        "starting phase 11 implementation"
+        "starting Submora service"
     );
 
     let listener = TcpListener::bind(bind_addr).await?;

@@ -1,6 +1,7 @@
 mod api;
 mod app;
 mod components;
+mod messages;
 
 #[cfg(target_arch = "wasm32")]
 fn main() {
@@ -10,7 +11,7 @@ fn main() {
 #[cfg(not(target_arch = "wasm32"))]
 fn main() {
     println!(
-        "{} web app is intended for the wasm32 target. Use `dx serve` or build with `--target wasm32-unknown-unknown`.",
+        "{} Web 应用仅面向 wasm32 目标。请使用 `dx serve`，或通过 `--target wasm32-unknown-unknown` 进行构建。",
         submora_core::APP_NAME
     );
 }

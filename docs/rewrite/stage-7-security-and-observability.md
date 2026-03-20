@@ -63,7 +63,6 @@
   - `cargo fmt --all -- --check`
   - `cargo check --workspace`
   - `cargo check -p submora-web --target wasm32-unknown-unknown`
-  - `cargo test -p submora-core -p submora`
 
 ## 验证
 
@@ -72,13 +71,4 @@
 ```bash
 cargo fmt --all
 cargo check --workspace
-cargo test -p submora-core -p submora
 ```
-
-阶段七新增集成测试覆盖：
-
-- 写接口必须携带 CSRF
-- 登录失败达到阈值后被限流
-- 诊断接口在抓取前返回 `pending`
-- 公共聚合执行后可查询到写入的诊断数据
-- 同一 SQLite 数据库上的 session 可跨 app rebuild 保留
